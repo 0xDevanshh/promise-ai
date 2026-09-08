@@ -158,7 +158,7 @@ export default function AnalyzePage() {
                 placeholder="Paste your transcript, SRT, or VTT here..."
                 value={transcript}
                 onChange={(event) => setTranscript(event.target.value)}
-                className="min-h-56 font-mono text-sm"
+                className="field-sizing-fixed h-56 resize-y font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
                 Supports plain transcript, SRT, and VTT formats.
