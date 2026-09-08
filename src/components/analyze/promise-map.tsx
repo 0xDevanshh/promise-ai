@@ -1,4 +1,4 @@
-import { CheckCircle2, CircleDashed, XCircle } from "lucide-react"
+import { CheckCircle2, CircleDashed, Clock, XCircle } from "lucide-react"
 
 import {
   Card,
@@ -17,6 +17,7 @@ const STATUS_META: Record<
 > = {
   delivered: { icon: CheckCircle2, label: "Delivered", className: "text-success" },
   partial: { icon: CircleDashed, label: "Partial", className: "text-muted-foreground" },
+  delayed: { icon: Clock, label: "Delayed", className: "text-muted-foreground" },
   missing: { icon: XCircle, label: "Missing", className: "text-destructive" },
 }
 
