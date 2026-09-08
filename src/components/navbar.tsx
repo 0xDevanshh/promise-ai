@@ -31,7 +31,11 @@ function Navbar() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <Button size="sm" className="hidden sm:inline-flex">
+          <Button
+            size="sm"
+            className="hidden sm:inline-flex"
+            render={<Link href="/analyze" />}
+          >
             Analyze Content
           </Button>
         </div>

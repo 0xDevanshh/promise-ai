@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { Sparkles } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
@@ -21,7 +22,11 @@ function Hero() {
       </p>
 
       <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
-        <Button size="lg" className="w-full sm:w-auto">
+        <Button
+          size="lg"
+          className="w-full sm:w-auto"
+          render={<Link href="/analyze" />}
+        >
           Analyze Your Video
         </Button>
         <Button size="lg" variant="outline" className="w-full sm:w-auto">
