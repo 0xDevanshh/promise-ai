@@ -5,7 +5,7 @@ import { Check, Copy, Wand2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import type { RepairOutput } from "@/lib/mock-analysis"
+import type { RepairOutput } from "@/lib/analysis-schema"
 
 interface RepairPanelProps {
   outputs: RepairOutput[]

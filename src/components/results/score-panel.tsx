@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { getScoreClassification } from "@/lib/mock-analysis"
+import { getScoreClassification } from "@/lib/analysis-schema"
 
 interface ScorePanelProps {
   score: number

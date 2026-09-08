@@ -17,6 +17,7 @@ function ThemeToggle() {
   const [mounted, setMounted] = React.useState(false)
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- must defer to the client render to avoid a theme hydration mismatch
     setMounted(true)
   }, [])
 

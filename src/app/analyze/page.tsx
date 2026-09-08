@@ -1,42 +1,45 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
+import { AlertCircle } from "lucide-react"
 
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { ThumbnailDropzone } from "@/components/analyze/thumbnail-dropzone"
+import {
+  ThumbnailDropzone,
+  type ThumbnailValue,
+} from "@/components/analyze/thumbnail-dropzone"
 import { LoadingStages } from "@/components/analyze/loading-stages"
 import { PromiseMap } from "@/components/analyze/promise-map"
-import {
-  LOADING_STAGES,
-  MOCK_ANALYSIS,
-  SAMPLE_TITLE,
-  SAMPLE_TRANSCRIPT,
-  type MockAnalysis,
-} from "@/lib/mock-analysis"
+import { LOADING_STAGES, SAMPLE_TITLE, SAMPLE_TRANSCRIPT } from "@/lib/mock-analysis"
+import { AnalysisResultSchema, type AnalysisResult } from "@/lib/analysis-schema"
+import { LAST_ANALYSIS_STORAGE_KEY } from "@/lib/analysis-storage"
 
 type Stage = "form" | "loading" | "results"
 
-const STAGE_DURATION_MS = 550
+const STAGE_INTERVAL_MS = 1400
 
 export default function AnalyzePage() {
+  const router = useRouter()
+
   const [stage, setStage] = React.useState<Stage>("form")
   const [stageIndex, setStageIndex] = React.useState(0)
   const [title, setTitle] = React.useState("")
   const [transcript, setTranscript] = React.useState("")
-  const [thumbnail, setThumbnail] = React.useState<string | null>(null)
-  const [analysis, setAnalysis] = React.useState<MockAnalysis | null>(null)
+  const [thumbnail, setThumbnail] = React.useState<ThumbnailValue | null>(null)
+  const [analysis, setAnalysis] = React.useState<AnalysisResult | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
 
   const canAnalyze = title.trim().length > 0 && transcript.trim().length > 0
 
-  const timeoutIds = React.useRef<ReturnType<typeof setTimeout>[]>([])
+  const intervalId = React.useRef<ReturnType<typeof setInterval> | null>(null)
 
   React.useEffect(() => {
-    const ids = timeoutIds.current
     return () => {
-      ids.forEach(clearTimeout)
+      if (intervalId.current) clearInterval(intervalId.current)
     }
   }, [])
 
@@ -45,26 +48,59 @@ export default function AnalyzePage() {
     setTranscript(SAMPLE_TRANSCRIPT)
   }
 
-  function handleAnalyze() {
+  async function handleAnalyze() {
     if (!canAnalyze) return
 
+    setError(null)
     setStage("loading")
     setStageIndex(0)
 
-    LOADING_STAGES.forEach((_, index) => {
-      timeoutIds.current.push(
-        setTimeout(() => {
-          setStageIndex(index)
-        }, index * STAGE_DURATION_MS)
+    intervalId.current = setInterval(() => {
+      setStageIndex((current) =>
+        current < LOADING_STAGES.length - 1 ? current + 1 : current
       )
-    })
+    }, STAGE_INTERVAL_MS)
 
-    timeoutIds.current.push(
-      setTimeout(() => {
-        setAnalysis({ ...MOCK_ANALYSIS, title })
-        setStage("results")
-      }, LOADING_STAGES.length * STAGE_DURATION_MS)
-    )
+    try {
+      const formData = new FormData()
+      formData.set("title", title)
+      formData.set("transcript", transcript)
+      if (thumbnail) {
+        formData.set("thumbnail", thumbnail.file)
+      }
+
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        body: formData,
+      })
+
+      const json: unknown = await response.json()
+
+      if (!response.ok) {
+        const message =
+          typeof json === "object" && json !== null && "error" in json
+            ? String((json as { error: unknown }).error)
+            : "Analysis failed. Please try again."
+        throw new Error(message)
+      }
+
+      const result = AnalysisResultSchema.parse(json)
+      setAnalysis(result)
+      try {
+        sessionStorage.setItem(LAST_ANALYSIS_STORAGE_KEY, JSON.stringify(result))
+      } catch {
+        // sessionStorage unavailable; the results page will fall back to sample data
+      }
+      setStage("results")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Analysis failed. Please try again.")
+      setStage("form")
+    } finally {
+      if (intervalId.current) {
+        clearInterval(intervalId.current)
+        intervalId.current = null
+      }
+    }
   }
 
   function handleReset() {
@@ -88,6 +124,13 @@ export default function AnalyzePage() {
                 Promise Map.
               </p>
             </div>
+
+            {error && (
+              <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
+                <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <label htmlFor="title" className="text-sm font-medium">
@@ -164,6 +207,13 @@ export default function AnalyzePage() {
             </div>
 
             <PromiseMap analysis={analysis} />
+
+            <Button
+              className="self-start"
+              onClick={() => router.push("/results")}
+            >
+              View full report
+            </Button>
           </div>
         )}
       </main>

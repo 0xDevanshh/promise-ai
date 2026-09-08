@@ -1,7 +1,7 @@
 import { AlertTriangle } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
-import type { ExpectationGap, RiskLevel } from "@/lib/mock-analysis"
+import type { ExpectationGap, RiskLevel } from "@/lib/analysis-schema"
 
 const RISK_META: Record<RiskLevel, { label: string; className: string }> = {
   high: { label: "High Risk", className: "bg-destructive/10 text-destructive" },

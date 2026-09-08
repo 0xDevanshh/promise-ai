@@ -1,4 +1,4 @@
-import type { TimelineEvent } from "@/lib/mock-analysis"
+import type { TimelineEvent } from "@/lib/analysis-schema"
 
 interface PromiseTimelineProps {
   events: TimelineEvent[]

@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Separator } from "@/components/ui/separator"
-import type { MockAnalysis, PromiseStatus } from "@/lib/mock-analysis"
+import type { AnalysisResult, PromiseStatus } from "@/lib/analysis-schema"
 
 const STATUS_META: Record<
   PromiseStatus,
@@ -22,7 +22,7 @@ const STATUS_META: Record<
 }
 
 interface PromiseMapProps {
-  analysis: MockAnalysis
+  analysis: AnalysisResult
 }
 
 function PromiseMap({ analysis }: PromiseMapProps) {

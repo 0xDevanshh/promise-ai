@@ -1,3 +1,5 @@
+import type { AnalysisResult } from "@/lib/analysis-schema"
+
 export const LOADING_STAGES = [
   "Reading thumbnail",
   "Extracting viewer promises",
@@ -23,25 +25,11 @@ Growth slowed down a bit after that, but I kept iterating on the product.
 00:19:45.000 --> 00:19:55.000
 I want to eventually hit $10K a month, and I'll share updates on that goal.`
 
-export type PromiseStatus = "delivered" | "partial" | "delayed" | "missing"
-
-export interface PromiseResult {
-  label: string
-  source: string
-  status: PromiseStatus
-  timestamp: string | null
-  evidence: string
-}
-
-export interface MockAnalysis {
-  score: number
-  title: string
-  promises: PromiseResult[]
-}
-
-export const MOCK_ANALYSIS: MockAnalysis = {
-  score: 68,
+export const MOCK_ANALYSIS: AnalysisResult = {
   title: SAMPLE_TITLE,
+  score: 68,
+  summary:
+    "The video delivers on the AI SaaS build but overstates its revenue outcome. The $10K figure shown in the thumbnail is never supported in the transcript.",
   promises: [
     {
       label: "Built an AI SaaS",
@@ -55,7 +43,8 @@ export const MOCK_ANALYSIS: MockAnalysis = {
       source: "Thumbnail",
       status: "delayed",
       timestamp: "06:32",
-      evidence: "Revenue payoff doesn't land until more than halfway through the video.",
+      evidence:
+        "Revenue payoff doesn't land until more than halfway through the video.",
     },
     {
       label: "Step-by-step build process",
@@ -69,91 +58,56 @@ export const MOCK_ANALYSIS: MockAnalysis = {
       source: "Thumbnail",
       status: "missing",
       timestamp: null,
-      evidence: "Framed as a future goal, never shown as delivered in the video.",
+      evidence:
+        "Framed as a future goal, never shown as delivered in the video.",
+    },
+  ],
+  expectationGaps: [
+    {
+      risk: "high",
+      description:
+        'Thumbnail implies "$10K revenue", but the transcript contains no evidence supporting the claim.',
+    },
+    {
+      risk: "medium",
+      description: "The main revenue payoff does not appear until 06:32.",
+    },
+    {
+      risk: "low",
+      description:
+        "Title promises a full build, but several implementation steps are only briefly mentioned.",
+    },
+  ],
+  timeline: [
+    { timestamp: "00:00", label: "Hook gap" },
+    { timestamp: "01:18", label: "Build begins" },
+    { timestamp: "03:42", label: "Product shown" },
+    { timestamp: "06:32", label: "Revenue revealed" },
+  ],
+  hookAnalysis: {
+    hookScore: 61,
+    mainPromiseAddressed: "00:47",
+    viewerRisk: "medium",
+    suggestion:
+      "Open with the $10K outcome in the first 3 seconds instead of background story. Viewers are deciding whether to stay before the hook lands at 00:47.",
+  },
+  repairs: [
+    {
+      key: "opening",
+      label: "Better Opening",
+      content:
+        "\"I turned this into $10K in a month — here's the exact build, and the one mistake that almost killed it.\"",
+    },
+    {
+      key: "title",
+      label: "Better Title",
+      content: "I Built an AI SaaS to $10K (Full Build + Numbers)",
+    },
+    {
+      key: "thumbnail",
+      label: "Thumbnail Fix",
+      content:
+        "Replace \"$10K Revenue\" text with \"$1K Week 1\" to match what the video actually proves, or add a follow-up video that delivers on the $10K claim.",
     },
   ],
 }
-
-export function getScoreClassification(score: number) {
-  if (score >= 85) return "Strong Delivery"
-  if (score >= 70) return "Mostly Delivered"
-  if (score >= 50) return "Needs Work"
-  return "Broken Promise"
-}
-
-export type RiskLevel = "high" | "medium" | "low"
-
-export interface ExpectationGap {
-  risk: RiskLevel
-  description: string
-}
-
-export const EXPECTATION_GAPS: ExpectationGap[] = [
-  {
-    risk: "high",
-    description:
-      'Thumbnail implies "$10K revenue", but the transcript contains no evidence supporting the claim.',
-  },
-  {
-    risk: "medium",
-    description: "The main revenue payoff does not appear until 06:32.",
-  },
-  {
-    risk: "low",
-    description:
-      "Title promises a full build, but several implementation steps are only briefly mentioned.",
-  },
-]
-
-export interface TimelineEvent {
-  timestamp: string
-  label: string
-}
-
-export const PROMISE_TIMELINE: TimelineEvent[] = [
-  { timestamp: "00:00", label: "Hook gap" },
-  { timestamp: "01:18", label: "Build begins" },
-  { timestamp: "03:42", label: "Product shown" },
-  { timestamp: "06:32", label: "Revenue revealed" },
-]
-
-export interface HookAnalysis {
-  hookScore: number
-  mainPromiseAddressed: string
-  viewerRisk: RiskLevel
-  suggestion: string
-}
-
-export const HOOK_ANALYSIS: HookAnalysis = {
-  hookScore: 61,
-  mainPromiseAddressed: "00:47",
-  viewerRisk: "medium",
-  suggestion:
-    "Open with the $10K outcome in the first 3 seconds instead of background story. Viewers are deciding whether to stay before the hook lands at 00:47.",
-}
-
-export interface RepairOutput {
-  key: string
-  label: string
-  content: string
-}
-
-export const REPAIR_OUTPUTS: RepairOutput[] = [
-  {
-    key: "opening",
-    label: "Better Opening",
-    content:
-      "\"I turned this into $10K in a month — here's the exact build, and the one mistake that almost killed it.\"",
-  },
-  {
-    key: "title",
-    label: "Better Title",
-    content: "I Built an AI SaaS to $10K (Full Build + Numbers)",
-  },
-  {
-    key: "thumbnail",
-    label: "Thumbnail Fix",
-    content:
-      "Replace \"$10K Revenue\" text with \"$1K Week 1\" to match what the video actually proves, or add a follow-up video that delivers on the $10K claim.",
-  },
-]

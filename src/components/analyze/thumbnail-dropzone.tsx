@@ -14,9 +14,14 @@ const ACCEPTED_TYPES = {
   "image/webp": [".webp"],
 }
 
+export interface ThumbnailValue {
+  file: File
+  preview: string
+}
+
 interface ThumbnailDropzoneProps {
-  value: string | null
-  onChange: (preview: string | null) => void
+  value: ThumbnailValue | null
+  onChange: (value: ThumbnailValue | null) => void
 }
 
 function ThumbnailDropzone({ value, onChange }: ThumbnailDropzoneProps) {
@@ -24,7 +29,7 @@ function ThumbnailDropzone({ value, onChange }: ThumbnailDropzoneProps) {
     (accepted: File[]) => {
       const file = accepted[0]
       if (!file) return
-      onChange(URL.createObjectURL(file))
+      onChange({ file, preview: URL.createObjectURL(file) })
     },
     [onChange]
   )
@@ -39,7 +44,7 @@ function ThumbnailDropzone({ value, onChange }: ThumbnailDropzoneProps) {
     return (
       <div className="relative overflow-hidden rounded-lg border border-border">
         <Image
-          src={value}
+          src={value.preview}
           alt="Thumbnail preview"
           width={640}
           height={360}

@@ -3,7 +3,7 @@ import { Lightbulb } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import type { HookAnalysis as HookAnalysisData, RiskLevel } from "@/lib/mock-analysis"
+import type { HookAnalysis as HookAnalysisData, RiskLevel } from "@/lib/analysis-schema"
 
 const RISK_LABEL: Record<RiskLevel, string> = {
   high: "High",
