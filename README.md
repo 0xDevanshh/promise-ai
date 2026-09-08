@@ -1,36 +1,84 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Promise AI
 
-## Getting Started
+Does your video deliver what the click promised?
 
-First, run the development server:
+Promise AI compares a video's title, thumbnail, and transcript to detect expectation gaps, delayed payoffs, unsupported claims, and weak hooks — then scores how well the video delivers on what it promised.
+
+## How it works
+
+1. **Analyze** ([`/analyze`](src/app/analyze/page.tsx)) — submit a video title, thumbnail image, and transcript (plain text, SRT, or VTT).
+2. The transcript, title, and thumbnail are sent to Gemini via [`/api/analyze`](src/app/api/analyze/route.ts), which is prompted to detect:
+   - delivered / partial / delayed / missing promises
+   - unsupported claims
+   - weak hooks
+   - expectation gaps (with risk levels)
+   - when the main promise is actually addressed
+3. Gemini's JSON output is validated against a [Zod schema](src/lib/analysis-schema.ts) before it's trusted or rendered — malformed or invalid output is rejected with an error rather than shown to the user.
+4. **Results** ([`/results`](src/app/results/page.tsx)) — a full breakdown: Promise Delivery Score, promise-by-promise evidence, expectation gaps, a promise timeline, hook analysis, and AI-generated repair suggestions (better opening, better title, thumbnail fix).
+
+If a transcript has no timestamps, the model is instructed to never invent them — timestamped fields are simply left empty rather than guessed.
+
+## Tech stack
+
+- [Next.js](https://nextjs.org) (App Router) + React 19 + TypeScript
+- [Tailwind CSS v4](https://tailwindcss.com)
+- [shadcn/ui](https://ui.shadcn.com) (`base-nova` style) on top of [Base UI](https://base-ui.com) primitives — not Radix
+- [next-themes](https://github.com/pacocoursey/next-themes) for light/dark/system theming
+- [lucide-react](https://lucide.dev) icons, Geist Sans/Mono via `next/font/google`
+- [react-dropzone](https://react-dropzone.js.org) for thumbnail upload
+- [`@google/genai`](https://github.com/googleapis/js-genai) for the Gemini API
+- [Zod](https://zod.dev) for validating Gemini's structured output
+
+## Getting started
+
+Install dependencies and set your Gemini API key:
+
+```bash
+npm install
+```
+
+Create `.env.local` in the project root:
+
+```bash
+GEMINI_API_KEY=your-gemini-api-key
+```
+
+Then run the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). Try `/analyze`, click **Try Sample** to populate a sample title/transcript, then **Analyze Promise**.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the dev server (Turbopack) |
+| `npm run build` | Production build |
+| `npm run start` | Run the production build |
+| `npm run lint` | Lint the codebase |
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    page.tsx              # Landing page
+    analyze/page.tsx       # Analysis form + loading + inline result
+    results/page.tsx       # Full Promise Map dashboard
+    api/analyze/route.ts   # Gemini request + Zod validation
+  components/
+    analyze/               # Thumbnail dropzone, loading stages, promise map
+    results/                # Score panel, breakdown, gaps, timeline, hook analysis, repairs
+    ui/                     # shadcn/Base UI primitives
+  lib/
+    analysis-schema.ts      # Zod schemas + types shared by the API and UI
+    mock-analysis.ts        # Sample data used by "Try Sample" and as a Results fallback
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notes
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `GEMINI_API_KEY` is only ever read server-side in the API route — it is never exposed to the client.
+- `.env` / `.env.local` are gitignored; never commit real API keys.
